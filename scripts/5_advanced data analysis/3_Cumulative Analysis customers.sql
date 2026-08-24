@@ -1,0 +1,18 @@
+CREATE OR REPLACE VIEW gold.customer_acquisition_rate AS (
+  WITH customer_first_orders AS (
+    SELECT
+      customer_id,
+      MIN(order_purchase_timestamp::DATE) AS acquisition_date
+    FROM gold.fact_sales
+    WHERE order_purchase_timestamp IS NOT NULL
+    GROUP BY customer_id
+  )
+
+  SELECT
+    acquisition_date,
+    COUNT(customer_id) AS new_customers_at_date,
+    SUM(COUNT(customer_id)) OVER(ORDER BY acquisition_date) new_customers_running_total
+  FROM customer_first_orders
+  GROUP BY acquisition_date
+  ORDER BY acquisition_date ASC
+)

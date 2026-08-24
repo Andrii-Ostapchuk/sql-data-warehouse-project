@@ -67,3 +67,8 @@ SELECT
 FROM gold.fact_payments
 GROUP BY payment_type
 ORDER BY COUNT(customer_id) DESC;
+
+
+SELECT
+  COUNT(seller_id)
+FROM gold.dim_sellers;
