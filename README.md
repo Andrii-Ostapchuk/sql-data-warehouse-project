@@ -36,7 +36,8 @@ A dedicated `reporting` schema houses complex business logic and time-series agg
 
 * **Customer 360 & RFM (`customer_360`):** A custom Recency, Frequency, Monetary cohort segmentation model (Champions, Loyal, At Risk, Hibernating) tracking Lifetime Value (LTV), logistics friction, and installment dependency.
 * **Seller Performance Matrix (`seller_performance`):** Benchmarks MoM revenue momentum against lifetime averages, sorting sellers into operational health tiers (Growth Leader, Cooling Off, Recovering, Underperforming).
-* **Seller Volume vs. Rating (`seller_volume_feedback_segmentation`):** A 2-axis quadrant matrix crossing fulfillment capacity with customer satisfaction metrics.
+* **Seller Volume vs. Rating (`seller_volume_feedback_segmentation`):** A 2-axis operational quadrant matrix crossing fulfillment capacity (High Volume >200, Medium Volume 51–200, Low Volume ≤50 orders) with customer satisfaction tiers (Excellent ≥4.0, Needs Improvement 3.0–3.99, Bad <3.0) to isolate high-volume accounts with quality or churn risks.
+* **Payment Type per State Performance (`payment_type_per_state_performance`):** Breaks down regional sales by customer state and payment method, computing state-level sales totals and the relative percentage share (`payment_type_proportion`) of each payment option to map geographic preferences.
 * **Logistics Tracking (`freight_to_price_30d_rolling_avg`):** Tracks the daily ratio of shipping costs to product prices, smoothed via a 30-day rolling average window.
 * **Category Momentum (`top_categories_performance`):** Month-over-month (MoM) revenue growth trajectories for the top 5 historical product categories using a dense calendar spine.
 * **Acquisition Velocity (`customer_acquisition_rate`):** Daily new customer counts and cumulative marketplace growth tracking.
@@ -44,7 +45,3 @@ A dedicated `reporting` schema houses complex business logic and time-series agg
 ## 📊 Power BI Implementation
 
 The visualization layer integrates the `reporting` views to deliver actionable insights while maintaining strict data governance.
-
-* **Data Modeling:** Direct 1-to-Many ($1 \rightarrow *$) relationships between standalone dimension tables and fact/reporting views.
-* **Resolving Circular Dependencies:** Avoided DAX VertiPaq loop errors by migrating structural sorting logic upstream. Sort indexes (e.g., `Growth Leader` = 1, `Cooling Off` = 2) are materialized natively in SQL/Power Query before reaching the semantic model.
-* **Visual Engineering:** Implementation of dual-axis charts (e.g., contrasting raw seller headcount via columns against average revenue per seller via line graphs) to expose high-value "whale" segments at risk of churn.
