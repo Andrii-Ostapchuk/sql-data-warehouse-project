@@ -31,3 +31,10 @@ CREATE SCHEMA IF NOT EXISTS silver;
 -- analytical views.
 -- ============================================================================
 CREATE SCHEMA IF NOT EXISTS golden;
+
+-- ============================================================================
+-- 4. Reporting Schema (BI Presentation Views Layer)
+-- Specialized abstraction layer containing pre-aggregated views and custom data 
+-- structures built specifically to feed Power BI dashboards and executive reports.
+-- ============================================================================
+CREATE SCHEMA IF NOT EXISTS reporting;

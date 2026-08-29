@@ -1,9 +1,3 @@
-/*===========================
-ADD EXCHANGE RATE!!!!!!!!!!!
-===========================*/
-
-
-
 -- Find the Total number of Orders
 SELECT COUNT(DISTINCT order_id) AS total_orders
 FROM gold.fact_sales;

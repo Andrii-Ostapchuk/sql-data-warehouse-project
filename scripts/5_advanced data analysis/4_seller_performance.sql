@@ -1,3 +1,21 @@
+/*
+===============================================================================
+Analytical Query: Seller Performance Health Matrix & Classification
+===============================================================================
+Purpose:
+    - Calculates monthly gross revenue per seller.
+    - Benchmarks monthly performance against:
+        1. The seller's historical monthly baseline average (`avg_sales`).
+        2. The previous month's sales volume (`pm_sales` via LAG window).
+    - Classifies sellers into a 2x2 performance health tier:
+        - Growth Leader:    Above historical average & Growing MoM
+        - Cooling Off:      Above historical average & Declining MoM
+        - Recovering:       Below historical average & Growing MoM
+        - Underperforming:  Below historical average & Declining MoM
+        - Insufficient Data: First recorded active month (no prior baseline)
+===============================================================================
+*/
+
 WITH seller_monthly_revenue AS (
   SELECT 
     seller_id,
@@ -6,7 +24,6 @@ WITH seller_monthly_revenue AS (
   FROM gold.fact_sales
   GROUP BY seller_id, TO_CHAR(order_purchase_timestamp, 'YYYY-MM')
 ),
-
 seller_performance AS (
   SELECT
     seller_id,
@@ -18,7 +35,6 @@ seller_performance AS (
     ROUND(current_sales - LAG(current_sales) OVER(PARTITION BY seller_id ORDER BY revenue_month), 2) diff_pm
   FROM seller_monthly_revenue
 )
-
 SELECT
   seller_id,
   revenue_month,
@@ -34,4 +50,4 @@ SELECT
     WHEN diff_avg <= 0 AND diff_pm > 0 THEN 'Recovering'
     WHEN diff_avg <= 0 AND diff_pm <= 0 THEN 'Underperforming'
   END AS seller_performance_status
-FROM seller_performance;
+FROM seller_performance

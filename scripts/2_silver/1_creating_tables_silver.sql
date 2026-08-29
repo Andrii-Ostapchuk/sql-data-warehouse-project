@@ -1,3 +1,15 @@
+/*
+===============================================================================
+DDL Script: Silver Layer Table Creation
+===============================================================================
+Script Purpose:
+    - Drops existing tables if present to support repeatable/idempotent execution.
+    - Creates cleansed and conformed tables with appropriate data types.
+    - Adds metadata audit columns (dwh_create_date) and data quality flags 
+      (is_valid_date_sequence, physical_dimentions_integrity) for downstream use.
+===============================================================================
+*/
+
 DROP TABLE IF EXISTS silver.olist_customers_dataset;
 CREATE TABLE silver.olist_customers_dataset (
     customer_id VARCHAR(50),
