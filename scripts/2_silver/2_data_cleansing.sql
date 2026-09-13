@@ -36,7 +36,6 @@ SELECT
     customer_state
 FROM bronze.olist_customers_dataset;
 
-
 -- ============================================================================
 -- 2. Geolocation Dataset
 -- Cleansing: Deduplicate zip codes to a single unique record by:

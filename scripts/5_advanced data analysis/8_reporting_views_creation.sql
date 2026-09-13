@@ -95,6 +95,40 @@ CREATE OR REPLACE VIEW reporting.freight_to_price_30d_rolling_avg AS (
 );
 
 
+-- Finding Count of most frequent categories
+CREATE OR REPLACE VIEW reporting.most_frequent_categories_freight_to_price_high AS (
+  SELECT 
+    most_frequent_category,
+    COUNT(*) AS orders_per_category
+  FROM (
+    WITH aggregated_dates AS (
+      SELECT
+        s.order_purchase_timestamp::DATE AS order_date,
+        SUM(s.price)::NUMERIC AS price,
+        SUM(s.freight_value)::NUMERIC AS freight_value,
+        (SUM(s.freight_value) / NULLIF(SUM(s.price), 0))::NUMERIC AS freight_to_price,
+        MODE() WITHIN GROUP (ORDER BY p.product_category_name) AS most_frequent_category
+      FROM gold.fact_sales s
+      LEFT JOIN gold.dim_products p ON s.product_id = p.product_id
+      GROUP BY s.order_purchase_timestamp::DATE
+    )
+    SELECT 
+      most_frequent_category,
+      order_date,
+      price,
+      freight_value,
+      ROUND(freight_to_price, 4) AS daily_freight_ratio,
+      ROUND(AVG(freight_to_price) OVER(ORDER BY order_date RANGE BETWEEN INTERVAL '29 days' PRECEDING AND CURRENT ROW), 4) AS rolling_30d_avg_freight_ratio
+    FROM aggregated_dates
+    WHERE order_date BETWEEN '2017-02-01' AND '2018-08-31'
+      AND freight_to_price > 0.18
+  ) sub
+  GROUP BY most_frequent_category
+  ORDER BY orders_per_category DESC
+  LIMIT 3
+);
+
+
 -- ============================================================================
 -- 3. Customer Acquisition Rate View
 -- Purpose: Measures daily marketplace customer acquisition velocity and tracks 
@@ -119,6 +153,34 @@ CREATE OR REPLACE VIEW reporting.customer_acquisition_rate AS (
   ORDER BY acquisition_date ASC
 );
 
+CREATE OR REPLACE VIEW reporting.customer_acquisition_mom AS (
+  WITH customer_first_orders AS (
+    SELECT
+      customer_id,
+      MIN(order_purchase_timestamp::DATE) AS acquisition_date
+    FROM gold.fact_sales
+    WHERE order_purchase_timestamp IS NOT NULL
+    GROUP BY customer_id
+  ),
+  monthly_new_customers AS (
+    SELECT
+      DATE_TRUNC('month', acquisition_date)::DATE AS acquisition_month,
+      COUNT(customer_id) AS new_customers
+    FROM customer_first_orders
+    GROUP BY DATE_TRUNC('month', acquisition_date)
+  )
+  SELECT
+    acquisition_month,
+    new_customers,
+    LAG(new_customers) OVER (ORDER BY acquisition_month) AS prev_month_new_customers,
+    ROUND(
+      (new_customers::NUMERIC - LAG(new_customers) OVER (ORDER BY acquisition_month))
+      / NULLIF(LAG(new_customers) OVER (ORDER BY acquisition_month), 0) * 100
+    , 2) AS mom_growth_pct
+  FROM monthly_new_customers
+  WHERE acquisition_month > '2017-01-01'
+  ORDER BY acquisition_month
+);
 
 -- ============================================================================
 -- 4. Seller Performance View
@@ -193,6 +255,21 @@ CREATE OR REPLACE VIEW reporting.payment_type_per_state_performance AS (
   ORDER BY 1, 2
 );
 
+CREATE OR REPLACE VIEW reporting.orders_per_state_ratio AS (
+  WITH all_orders AS (
+    SELECT COUNT(DISTINCT order_id) AS all_orders
+    FROM gold.fact_sales
+  )
+
+  SELECT 
+    c.customer_state,
+    ROUND((COUNT(DISTINCT s.order_id)::NUMERIC / ao.all_orders) * 100, 2) AS orders_per_state_percentage
+  FROM gold.fact_sales s
+  LEFT JOIN gold.dim_customers c ON s.customer_id = c.customer_id
+  CROSS JOIN all_orders ao
+  GROUP BY 1, ao.all_orders
+  ORDER BY orders_per_state_percentage DESC
+);
 
 -- ============================================================================
 -- 6. Seller Volume & Feedback Segmentation View

@@ -3,7 +3,8 @@
 SELECT 
   MIN(order_purchase_timestamp) AS first_order_date,
   MAX(order_purchase_timestamp) AS last_order_date,
-  EXTRACT(MONTH FROM AGE(MAX(order_purchase_timestamp), MIN(order_purchase_timestamp))) AS order_range_months
+  EXTRACT(YEAR FROM AGE(MAX(order_purchase_timestamp), MIN(order_purchase_timestamp))) * 12
+    + EXTRACT(MONTH FROM AGE(MAX(order_purchase_timestamp), MIN(order_purchase_timestamp))) AS order_range_months
 FROM gold.fact_sales;
 
 -- How are orders distributed by year?

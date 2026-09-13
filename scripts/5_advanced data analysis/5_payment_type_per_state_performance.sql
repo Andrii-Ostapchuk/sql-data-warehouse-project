@@ -29,3 +29,4 @@ SELECT
 FROM payment_type_per_state_performance
 ORDER BY 1, 2;
 
+

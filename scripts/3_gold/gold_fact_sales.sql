@@ -46,3 +46,4 @@ CREATE OR REPLACE VIEW gold.fact_sales AS (
   -- Exclude records with corrupted or invalid milestone chronology
   WHERE o.is_valid_date_sequence = TRUE
 );
+

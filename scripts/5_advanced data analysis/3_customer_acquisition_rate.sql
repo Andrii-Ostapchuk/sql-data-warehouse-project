@@ -10,6 +10,13 @@ Purpose:
 ===============================================================================
 */
 
+
+SELECT 
+  acquisition_date,
+  new_customers_at_date,
+  LAG(new_customers_at_date) OVER(),
+  new_customers_at_date / LAG(new_customers_at_date) OVER()
+FROM (
 WITH customer_first_orders AS (
   SELECT
     customer_id,
@@ -24,4 +31,7 @@ SELECT
   SUM(COUNT(customer_id)) OVER(ORDER BY acquisition_date) new_customers_running_total
 FROM customer_first_orders
 GROUP BY acquisition_date
-ORDER BY acquisition_date ASC;
+ORDER BY acquisition_date ASC
+)
+
+
